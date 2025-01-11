@@ -69,10 +69,6 @@ const OffersPage: FC = () => {
                         placeholder="Поиск по названию"
                         onSubmit={handleSearch}
                     />
-
-                    <div className="button-container">
-                        <Button variant="secondary">Заявка</Button>
-                    </div>
                 </div>
             </div>
 
