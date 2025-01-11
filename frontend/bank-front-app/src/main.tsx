@@ -1,10 +1,28 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
 import 'bootstrap/dist/css/bootstrap.min.css'
 
+import App from './App';
+import { Provider } from 'react-redux';
+import { store } from './redux/store';
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
-    <App/>
-  </React.StrictMode>,
+    <React.StrictMode>
+        <Provider store={store}>
+            <App/>
+        </Provider>
+    </React.StrictMode>,
 );
+  
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function() {
+        navigator.serviceWorker
+            .register("Bank-Offer-Frontend/serviceWorker.js")
+            .then((registration) => {
+                console.log('Service Worker зарегистрирован: ', registration);
+            })
+            .catch((error) => {
+                console.error('Service Worker не зарегистрирован: ', error);
+            });
+    })
+}

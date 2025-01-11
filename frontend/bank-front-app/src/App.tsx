@@ -7,7 +7,7 @@ import { ROUTES } from "./Routes";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename='/Bank-Offer-Frontend'>
       <Routes>
         <Route path={ROUTES.HOME} index element={<HomePage />} />
         <Route path={ROUTES.OFFERS} element={<OffersPage />} />
