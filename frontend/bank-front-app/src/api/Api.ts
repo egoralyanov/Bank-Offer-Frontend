@@ -48,9 +48,9 @@ export interface User {
 
 export interface BankApplication {
   /** ID */
-  pk?: number;
+  pk: number;
   /** Status */
-  status?: "draft" | "deleted" | "created" | "completed" | "rejected";
+  status: "draft" | "deleted" | "created" | "completed" | "rejected";
   /**
    * Creation date
    * @format date-time
@@ -405,14 +405,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<
         {
-          applications?: {
-            pk?: number;
-            status?: string;
-            creation_date?: string;
-            apply_date?: string;
-            end_date?: string;
-            psrn_and_company_name?: string;
-          }[];
+          applications: BankApplication[];
         },
         any
       >({
@@ -441,6 +434,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<{
         draft_application_id: number
+        number_of_offers: number
       }, void>({
         path: `/applications/`,
         method: "POST",
@@ -462,25 +456,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     applicationsRead: (applicationId: string, params: RequestParams = {}) =>
       this.request<
         {
-          application?: {
-            pk?: number;
-            status?: string;
-            creation_date?: string;
-            apply_date?: string;
-            end_date?: string;
-            psrn_and_company_name?: string;
-          };
-          offers?: {
-            pk?: number;
-            name?: string;
-            description?: string;
-            bonus?: string;
-            fact?: string;
-            cost?: number;
-            imageUrl?: string;
-            account_number?: string;
-            comment?: string;
-          }[];
+          application: BankApplication;
+          offers: DetailedBankOffer[];
         },
         any
       >({
@@ -565,7 +542,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      */
     applicationsOfferUpdate: (applicationId: string, offerId: string, data: { comment: string }, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<{
+        application: BankApplication
+        offers: DetailedBankOffer[]
+      }, any>({
         path: `/applications/${applicationId}/offer/${offerId}`,
         method: "PUT",
         body: data,
@@ -587,25 +567,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     applicationsOfferDelete: (applicationId: string, offerId: string, params: RequestParams = {}) =>
       this.request<
     {
-      application?: {
-        pk?: number;
-        status?: string;
-        creation_date?: string;
-        apply_date?: string;
-        end_date?: string;
-        psrn_and_company_name?: string;
-      };
-      offers?: {
-        pk?: number;
-        name?: string;
-        description?: string;
-        bonus?: string;
-        fact?: string;
-        cost?: number;
-        imageUrl?: string;
-        account_number?: string;
-        comment?: string;
-      }[];
+      application: BankApplication;
+      offers: DetailedBankOffer[];
     },
     any
   >({
@@ -654,6 +617,8 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
           pk: number;
           login: string;
           password: string;
+          is_staff: boolean;
+          is_superuser: boolean;
         },
         any
       >({
@@ -702,17 +667,9 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
     ) =>
       this.request<
         {
-          offers?: {
-            pk?: number;
-            name?: string;
-            description?: string;
-            bonus?: string;
-            fact?: string;
-            cost?: number;
-            imageUrl?: string;
-          }[];
-          draft_application_id?: number;
-          application_offers_counter?: number;
+          offers: BankOffer[];
+          draft_application_id: number;
+          application_offers_counter: number;
         },
         any
       >({
@@ -733,11 +690,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @request POST:/offers/
      * @secure
      */
-    offersCreate: (params: RequestParams = {}) =>
-      this.request<void, any>({
+    offersCreate: (data: BankOffer, params: RequestParams = {}) =>
+      this.request<BankOffer, any>({
         path: `/offers/`,
         method: "POST",
         secure: true,
+        body: data,
         ...params,
       }),
 
@@ -770,11 +728,14 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @duplicate
      * @secure
      */
-    OffersCreateImage: (offerId: string, params: RequestParams = {}) =>
+    OffersCreateImage: (offerId: string, data: { image: File }, params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/offers/${offerId}/`,
         method: "POST",
+        body: data,
         secure: true,
+        type: ContentType.FormData,
+        format: "json",
         ...params,
       }),
 
@@ -808,7 +769,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @secure
      */
     offersDelete: (offerId: string, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<BankOffer[], any>({
         path: `/offers/${offerId}/`,
         method: "DELETE",
         secure: true,

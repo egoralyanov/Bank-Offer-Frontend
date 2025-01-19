@@ -1,0 +1,34 @@
+.offers-table-page-container {
+    margin: 20px;
+}
+
+.offers-table-page-horizontal-container {
+    display: flex;
+    justify-content: end;
+    margin-bottom: 20px;
+}
+
+.top-container {
+    margin-left: 50px;
+    margin-right: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.top-container .title {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.table-container {
+    width: 80%;
+    margin: auto;
+}
+
+.offers-table-page-row {
+    border-radius: 16px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    height: 100px;
+}

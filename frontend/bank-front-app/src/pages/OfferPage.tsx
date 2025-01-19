@@ -1,39 +1,33 @@
 import "./OfferPage.css";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect } from "react";
 import { BreadCrumbs } from "../components/BreadCrumbs";
 import { ROUTES, ROUTE_LABELS } from "../Routes";
 import { useParams } from "react-router-dom";
 import { Spinner, Image } from "react-bootstrap";
 import defaultImage from "../assets/default_image.png";
-import { OFFER_MOCK } from "../modules/mocks";
 import { NavigationBar } from "../components/NavBar";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../redux/authSlice";
-import { useAppDispatch } from '../redux/store';
-import { api } from '../api';
-import { BankOffer } from '../api/Api';
+import { useAppDispatch, RootState } from '../redux/store';
+import { fetchOffer } from "../redux/offerSlice";
 
 const OfferPage: FC = () => {
     const { isAuthenticated, user } = useSelector((state: any) => state.auth);
-    const [offer, setOffer] = useState<BankOffer>();
+    const { data } = useSelector((state: RootState) => state.offer);
 
-    const authDispatch = useAppDispatch();
+    const appDispatch = useAppDispatch();
     const navigate = useNavigate();
     const { id } = useParams();
 
     useEffect(() => {
         if (!id) return;
-
-        api.offers.offersRead(id)
-            .then((response) => { setOffer(response.data) })
-            .catch(() => { setOffer(OFFER_MOCK) });
-    }, [id]);
+        appDispatch(fetchOffer(id));
+    }, [appDispatch, id]);
 
     const handleLogout = async () => {
         try {
-            await authDispatch(logoutUser()).unwrap();
-
+            await appDispatch(logoutUser()).unwrap();
             navigate(ROUTES.HOME);
         } catch (error) {
             console.error('Ошибка деавторизации:', error);
@@ -45,39 +39,40 @@ const OfferPage: FC = () => {
             <NavigationBar
                 isAuthenticated={isAuthenticated}
                 username={user.username}
+                is_staff={user.is_staff}
                 handleLogout={handleLogout}
             />
 
             <BreadCrumbs
                 crumbs={[
                 { label: ROUTE_LABELS.OFFERS, path: ROUTES.OFFERS },
-                { label: offer?.name || "Услуга" },
+                { label: data?.name || "Услуга" },
                 ]}
             />
-            {offer ? (
+            {data ? (
                 <div className="section">
                 <Image
                     className="image"
-                    src={offer.imageUrl || defaultImage}
+                    src={data.imageUrl || defaultImage}
                     alt="Image"
                 />
-                <div className="title">{offer.name}</div>
+                <div className="title">{data.name}</div>
                 <div className="content-header">Об услуге</div>
                 <div className="content">
                     <div className="content-name">Бонус:&nbsp;</div>
-                    <div className="content-value">{offer.bonus}</div>
+                    <div className="content-value">{data.bonus}</div>
                 </div>
                 <div className="content">
                     <div className="content-name">Факт:&nbsp;</div>
-                    <div className="content-value">{offer.fact}</div>
+                    <div className="content-value">{data.fact}</div>
                 </div>
                 <div className="content">
                     <div className="content-name">Стоимость:&nbsp;</div>
-                    <div className="content-value">{offer.cost}&nbsp;руб/мес</div>
+                    <div className="content-value">{data.cost}&nbsp;руб/мес</div>
                 </div>
                 <div className="content">
                     <div className="content-name">Описание:&nbsp;</div>
-                    <div className="content-value">{offer.description}</div>
+                    <div className="content-value">{data.description}</div>
                 </div>
                 </div>
             ) : (

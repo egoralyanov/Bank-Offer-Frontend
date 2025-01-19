@@ -1,21 +1,22 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../api';
+import { User } from '../api/Api' 
 
 interface AuthState {
   isAuthenticated: boolean;
-  user: { username: string | null; id: number | null };
+  user: { username: string | null; id: number | null; is_staff: boolean };
 }
 
 const initialState: AuthState = {
     isAuthenticated: false,
-    user: { username: null, id: null }
+    user: { username: null, id: null, is_staff: false }
 };
 
 export const loginUser = createAsyncThunk(
     'auth/login',
     async ({ login, password }: { login: string; password: string }) => {
         const response = await api.login.loginCreate({ login, password });
-        return { username: login, id: response.data.pk };
+        return { username: login, id: response.data.pk, is_staff: response.data.is_staff || response.data.is_superuser };
     }
 );
 
@@ -27,19 +28,35 @@ export const logoutUser = createAsyncThunk(
     }
 );
 
+export const registerUser = createAsyncThunk(
+    'auth/registerUser',
+    async ({ email, password }: { email: string; password: string }) => {
+        await api.api.apiUserCreate({ username: email, password });
+        return {};
+    }
+);
+
+export const updateUser = createAsyncThunk(
+    'auth/updateUser',
+    async ({ userId, updatedUser }: { userId: number; updatedUser: User }) => {
+        await api.api.apiUserUpdate(userId, updatedUser);
+        return {};
+    }
+);
+
 const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {},
     extraReducers: (builder) => {
         builder
-            .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ username: string; id: number }>) => {
+            .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ username: string; id: number; is_staff: boolean }>) => {
                 state.isAuthenticated = true;
                 state.user = action.payload;
             })
             .addCase(logoutUser.fulfilled, (state) => {
                 state.isAuthenticated = false;
-                state.user = { username: null, id: null };
+                state.user = { username: null, id: null, is_staff: false };
             })
     }
 });

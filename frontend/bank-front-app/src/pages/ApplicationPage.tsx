@@ -8,144 +8,71 @@ import { useNavigate, useParams } from "react-router-dom";
 import { NavigationBar } from "../components/NavBar";
 import { useSelector } from "react-redux";
 import { logoutUser } from "../redux/authSlice";
-import { useAppDispatch } from '../redux/store';
-import { api } from '../api';
-import { BankApplication, DetailedBankOffer } from '../api/Api';
+import { useAppDispatch, RootState } from '../redux/store';
+import { fetchApplication, submitComment, removeOffer, changeFullName, deleteApplication, submitApplication } from "../redux/applicationSlice";
+import { BankApplication } from '../api/Api';
 import defaultImage from "../assets/default_image.png";
 import { FaTrash } from 'react-icons/fa';
 import CommentField from "../components/CommentField";
 
 const ApplicationPage: FC = () => {
     const { isAuthenticated, user } = useSelector((state: any) => state.auth);
-    const [loading, setLoading] = useState(false);
-    const [isError, setIsError] = useState(false);
-    const [application, setApplication] = useState<BankApplication>();
-    const [offers, setOffers] = useState<DetailedBankOffer[]>();
+    const { data, loading, error } = useSelector((state: RootState) => state.application);
     const [psrnAndCompanyName, setPsrnAndCompanyName] = useState("");
   
-    const authDispatch = useAppDispatch();
+    const appDispatch = useAppDispatch();
     const navigate = useNavigate();
     const { id } = useParams();
 
     useEffect(() => {
         if (!id) return;
-
-        setLoading(true);
-        api.applications.applicationsRead(id)
-          .then((response) => {
-            const data = response.data;
-
-            if (data.application && data.offers) {
-                const applicationData = data.application as BankApplication;
-                const offersData = data.offers as DetailedBankOffer[];
-
-                setApplication(applicationData);
-                setOffers(offersData);
-                if (offersData.length == 0 && application?.status == 'draft') {
-                    navigate(ROUTES.APPLICATIONS);
-                }
-                setPsrnAndCompanyName(applicationData.psrn_and_company_name || '');
-            } else {
-                setIsError(true);
-            }
-
-            setLoading(false);
-          })
-          .catch(() => {
-            setIsError(true);
-            setLoading(false);
-          });
-      }, [id]);
+        appDispatch(fetchApplication(id));
+        setPsrnAndCompanyName(data.applicaiton?.psrn_and_company_name || '');
+      }, [appDispatch, id]);
   
-    const handleCardClick = (id: number | undefined) => {
-        if (id) {
-            navigate(`${ROUTES.OFFERS}/${id}`);
-        }
+    const handleCardClick = (offerId: number | undefined) => {
+        if (!offerId) return;
+        navigate(`${ROUTES.OFFERS}/${offerId}`);
     };
 
-    const handleCommentSubmit = (id: number | undefined, comment: string | undefined) => {
-        if (application && application.pk && id && application.status == 'draft' && comment) {
-            const applicationNumberString = String(application.pk);
-            const idString = String(id);
-
-            api.applications.applicationsOfferUpdate(applicationNumberString, idString, { comment: comment })
-                .catch(() => { setIsError(true) });
-        } else {
-            alert('Изменение этой заявки невозможно');
-        }
+    const handleCommentSubmit = (offerId: number | undefined, comment: string | undefined) => {
+        if (!id || !offerId || !comment) return;
+        appDispatch(submitComment({ applicationId: id, sectionId: String(offerId), comment: comment }));
     };
 
-    const handleMinusClick = (id: number | undefined) => {
-        console.log(application);
-        console.log(application?.pk);
-        console.log(id);
-        console.log(application?.status);
-        if (application && application.pk && id && application.status == 'draft') {
-            const applicationNumberString = String(application.pk);
-            const idString = String(id);
-
-            setLoading(true);
-            api.applications.applicationsOfferDelete(applicationNumberString, idString)
-                .then((response) => {
-                    const data = response.data;
-        
-                    if (data.offers) {
-                        const offersData = data.offers as DetailedBankOffer[];
-                        setOffers(offersData);
-                    } else {
-                        setIsError(true);
-                    }
-        
-                    setLoading(false);
-                })
-                .catch(() => {
-                    setIsError(true);
-                    setLoading(false);
-                });
-        } else {
-            alert('Изменение этой заявки невозможно');
-        }
+    const handleMinusClick = (offerId: number | undefined) => {
+        if (!id || !offerId) return;
+        appDispatch(removeOffer({ applicationId: id, sectionId: String(offerId) }));
     };
 
     const handleFieldSubmit = () => {
-        if (application && application.pk && id && application.status == 'draft') {
-            const applicationNumberString = String(application.pk);
+        if (!id) return;
 
-            let updatedApplication = application;
-            updatedApplication.psrn_and_company_name = psrnAndCompanyName;
-            api.applications.applicationsUpdate(applicationNumberString, updatedApplication);
-        } else {
-            alert('Изменение этой заявки невозможно');
-        }
+        var updatedApplication = { ...data.applicaiton } as BankApplication;
+        if (!updatedApplication) return;
+        updatedApplication.psrn_and_company_name = psrnAndCompanyName;
+        appDispatch(changeFullName({ applicationId: id, updatedApplication: updatedApplication }));
     };
 
     const handleDeleteButtonClick = () => {
-        if (application && application.pk && id && application.status == 'draft') {
-            const applicationNumberString = String(application.pk);
-
-            api.applications.applicationsDelete(applicationNumberString);
-
-            navigate(ROUTES.APPLICATIONS);
-        } else {
-            alert('Изменение этой заявки невозможно');
-        }
+        if (!id) return;
+        appDispatch(deleteApplication(id));
+        navigate(ROUTES.APPLICATIONS);
     };
 
     const handleSubmitButtonClick = () => {
-        if (application && application.pk && id && application.status == 'draft') {
-            const applicationNumberString = String(application.pk);
-
-            api.applications.applicationsSubmitUpdate(applicationNumberString);
-
-            navigate(ROUTES.APPLICATIONS);
-        } else {
-            alert('Изменение этой заявки невозможно');
+        if (!id) return;
+        if (!data.applicaiton?.psrn_and_company_name) {
+            alert('Заполните ФИО для формирования заявки');
+            return;
         }
+        appDispatch(submitApplication(id));
+        navigate(ROUTES.APPLICATIONS);
     };
 
     const handleLogout = async () => {
         try {
-          await authDispatch(logoutUser()).unwrap();
+          await appDispatch(logoutUser()).unwrap();
     
           navigate(ROUTES.HOME);
         } catch (error) {
@@ -158,8 +85,18 @@ const ApplicationPage: FC = () => {
             <NavigationBar
                 isAuthenticated={isAuthenticated}
                 username={user.username}
+                is_staff={user.is_staff}
                 handleLogout={handleLogout}
             />
+
+            <div className="application-page-breadcrumbs-container">
+                <BreadCrumbs
+                    crumbs={[
+                        { label: ROUTE_LABELS.APPLICATIONS, path: ROUTES.APPLICATIONS },
+                        { label: `Заявка #${id}` },
+                    ]}
+                />
+            </div>
 
             <div className="container">
                 {loading && (
@@ -167,24 +104,8 @@ const ApplicationPage: FC = () => {
                         <Spinner animation="border" />
                     </div>
                 )}
-                {!loading && !isError ? (
+                {!loading && !error ? (
                     <>
-                        <BreadCrumbs
-                            crumbs={[
-                                { label: ROUTE_LABELS.APPLICATIONS, path: ROUTES.APPLICATIONS },
-                                { label: `Заявка #${id}` },
-                            ]}
-                        />
-            
-                        <div className="application-page-top-container">
-                            <div className="title"></div>
-            
-                            <div className="application-page-horizontal-container">
-                                <Button variant="primary" onClick={handleSubmitButtonClick}>Сформировать заявку</Button>
-                                <Button className="right-button" variant="outline-danger" onClick={handleDeleteButtonClick}>Удалить заявку</Button>
-                            </div>
-                        </div>
-
                         <InputField
                             value={psrnAndCompanyName || ""}
                             setValue={(value) => setPsrnAndCompanyName(value)}
@@ -192,9 +113,9 @@ const ApplicationPage: FC = () => {
                             onSubmit={handleFieldSubmit}
                         />
 
-                        {offers?.length ? (
+                        {data.offers.length ? (
                             <Row className="g-4">
-                                {offers.map((item, index) => (
+                                {data.offers.map((item, index) => (
                                     <Col key={index} xs={12}>
                                         <div className="application-page-row-container">
                                             <div className="application-cell">
@@ -236,6 +157,11 @@ const ApplicationPage: FC = () => {
                 ) : (
                     <div>Нет доступа к заявке с таким id</div>
                 )}
+
+                <div className="application-page-horizontal-container">
+                    <Button variant="primary" onClick={handleSubmitButtonClick}>Сформировать заявку</Button>
+                    <Button className="right-button" variant="outline-danger" onClick={handleDeleteButtonClick}>Удалить заявку</Button>
+                </div>
             </div>
         </div>
     );

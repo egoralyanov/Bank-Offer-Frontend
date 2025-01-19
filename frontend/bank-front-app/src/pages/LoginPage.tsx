@@ -10,13 +10,12 @@ const LoginPage: FC = () => {
   const [email, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const dispatch = useAppDispatch();
+  const appDispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
-      await dispatch(loginUser({ login: email, password })).unwrap();
-
+      await appDispatch(loginUser({ login: email, password })).unwrap();
       navigate('/');
     } catch (error) {
       console.error('Ошибка авторизации:', error);

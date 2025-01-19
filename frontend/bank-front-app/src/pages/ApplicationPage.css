@@ -74,3 +74,7 @@
 .application-page-horizontal-container .right-button {
     margin-left: 10px;
 }
+
+.application-page-breadcrumbs-container {
+    margin: 20px;
+}

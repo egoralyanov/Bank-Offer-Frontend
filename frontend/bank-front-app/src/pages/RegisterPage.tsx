@@ -2,13 +2,18 @@ import { FC, useState } from 'react';
 import { Form, Button, Container, Row, Col, Alert } from 'react-bootstrap';
 import { BreadCrumbs } from '../components/BreadCrumbs';
 import { ROUTES, ROUTE_LABELS } from '../Routes';
-import { api } from '../api';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../redux/store';
+import { registerUser } from '../redux/authSlice';
 
 const RegisterPage: FC = () => {
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState<string | null>(null); // Состояние для ошибки
+  const [error, setError] = useState<string | null>(null);
+
+  const appDispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   const handleRegister = async () => {
     if (password !== confirmPassword) {
@@ -17,16 +22,10 @@ const RegisterPage: FC = () => {
     }
 
     try {
-      // Пытаемся создать пользователя через API
-      const userData = { username: login, password };
-      await api.api.apiUserCreate(userData);
-
-      // Если регистрация прошла успешно
-      alert('Регистрация прошла успешно!');
-      setError(null); 
+        await appDispatch(registerUser({ email: login, password })).unwrap();
+        navigate('/');
     } catch (error) {
-      // Если ошибка при создании пользователя
-      setError('Ошибка регистрации. Попробуйте снова.');
+        console.error('Ошибка регистрации:', error);
     }
   };
 
@@ -41,7 +40,7 @@ const RegisterPage: FC = () => {
         <Col xs={12} sm={8} md={6} lg={4} className="mx-auto">
           <div className="auth-container p-4 border rounded shadow">
             <h2 className="text-center mb-4">Регистрация</h2>
-            {error && <Alert variant="danger" className="mb-4">{error}</Alert>} {/* Отклик на ошибку */}
+            {error && <Alert variant="danger" className="mb-4">{error}</Alert>}
             <Form>
               <Form.Group controlId="formUsername">
                 <Form.Label>Логин</Form.Label>
