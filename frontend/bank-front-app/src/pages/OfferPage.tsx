@@ -3,32 +3,51 @@ import { FC, useEffect, useState } from "react";
 import { BreadCrumbs } from "../components/BreadCrumbs";
 import { ROUTES, ROUTE_LABELS } from "../Routes";
 import { useParams } from "react-router-dom";
-import { BankOffer, getOffer } from "../modules/BankOfferApi";
 import { Spinner, Image } from "react-bootstrap";
 import defaultImage from "../assets/default_image.png";
 import { OFFER_MOCK } from "../modules/mocks";
-import NavigationBar from "../components/NavBar";
+import { NavigationBar } from "../components/NavBar";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logoutUser } from "../redux/authSlice";
+import { useAppDispatch } from '../redux/store';
+import { api } from '../api';
+import { BankOffer } from '../api/Api';
 
 const OfferPage: FC = () => {
+    const { isAuthenticated, user } = useSelector((state: any) => state.auth);
     const [offer, setOffer] = useState<BankOffer>();
 
+    const authDispatch = useAppDispatch();
+    const navigate = useNavigate();
     const { id } = useParams();
 
     useEffect(() => {
         if (!id) return;
 
-        getOffer(id)
-            .then((response) => {
-                setOffer(response)
-            })
-            .catch(() => {
-                setOffer(OFFER_MOCK);
-            });
+        api.offers.offersRead(id)
+            .then((response) => { setOffer(response.data) })
+            .catch(() => { setOffer(OFFER_MOCK) });
     }, [id]);
+
+    const handleLogout = async () => {
+        try {
+            await authDispatch(logoutUser()).unwrap();
+
+            navigate(ROUTES.HOME);
+        } catch (error) {
+            console.error('Ошибка деавторизации:', error);
+        }
+    };
 
     return (
         <div>
-            <NavigationBar/>
+            <NavigationBar
+                isAuthenticated={isAuthenticated}
+                username={user.username}
+                handleLogout={handleLogout}
+            />
+
             <BreadCrumbs
                 crumbs={[
                 { label: ROUTE_LABELS.OFFERS, path: ROUTES.OFFERS },

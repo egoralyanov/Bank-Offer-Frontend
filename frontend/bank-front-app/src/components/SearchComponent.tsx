@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { setSearchValue } from '../redux/searchSlice';
-import { RootState } from "../redux/store";
+import { setSearchValue } from '../redux/searchSlice.ts';
+import { RootState } from "../redux/store.ts";
 import SearchField from './SearchField';
 
 export const SearchComponent = () => {

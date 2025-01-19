@@ -1,0 +1,18 @@
+.comment-field {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    margin-right: 10px;
+}
+
+.comment-field > input {
+    margin-right: 15px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+    padding-left: 28px;
+    padding-right: 28px;
+    width: 100%;
+    border-radius: 16px;
+    border-color: rgb(14, 101, 252);
+    background-color: white;
+}
