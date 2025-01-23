@@ -1,10 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { api } from '../api';
-import { BankApplication } from '../api/Api';
+import { DetailedBankApplication } from '../api/Api';
 
 interface ApplicationsStateData {
     creators: string[];
-    applications: BankApplication[];
+    applications: DetailedBankApplication[];
 }
 
 interface ApplicationsState {

@@ -80,6 +80,18 @@ export interface BankApplication {
   psrn_and_company_name?: string | null;
 }
 
+export interface DetailedBankApplication {
+  pk: number;
+  status: "draft" | "deleted" | "created" | "completed" | "rejected";
+  creation_date?: string;
+  apply_date?: string | null;
+  end_date?: string | null;
+  creator?: string;
+  moderator?: string;
+  psrn_and_company_name?: string | null;
+  offer_count?: number | null;
+}
+
 export interface BankOffer {
   /** ID */
   pk?: number;

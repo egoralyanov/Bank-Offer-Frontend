@@ -9,7 +9,7 @@ import { NavigationBar } from "../components/NavBar";
 import { BreadCrumbs } from "../components/BreadCrumbs";
 import { fetchApplications, changeStatus } from "../redux/applicationsSlice";
 import { FaCheck, FaTimes } from 'react-icons/fa';
-import { BankApplication } from '../api/Api';
+import { DetailedBankApplication } from '../api/Api';
 import { DateDisplay } from '../helpers/DateDisplay';
 import { Container, Row, Spinner, Col } from "react-bootstrap";
 
@@ -21,7 +21,7 @@ const ApplicationsPage: FC = () => {
     const [endDate, setEndDate] = useState<string>('');
     const [status, setStatus] = useState<string>('');
 
-    const [filteredApplications, setFilteredApplications] = useState<BankApplication[]>([]);
+    const [filteredApplications, setFilteredApplications] = useState<DetailedBankApplication[]>([]);
     const [creator, setCreator] = useState<string>('');
 
     const appDispatch = useAppDispatch();
@@ -176,11 +176,10 @@ const ApplicationsPage: FC = () => {
                             <Row>
                                 <Col>#</Col>
                                 <Col>Статус</Col>
-                                <Col>Дата создания</Col>
                                 <Col>Дата формирования</Col>
-                                <Col>Дата завершения</Col>
                                 <Col>Создатель</Col>
                                 <Col>ОГРН и название компании</Col>
+                                <Col>Кол-во услуг</Col>
                                 {user.is_staff && (
                                     <>
                                         <Col>Одобрить</Col>
@@ -193,12 +192,10 @@ const ApplicationsPage: FC = () => {
                                 <Row key={item.pk} className="my-2 custom-row align-items-center">
                                     <Col onClick={() => handleRowClick(item.pk)} style={{ cursor: "pointer", textDecoration: 'underline', color: 'blue' }}>{item.pk}</Col>
                                     <Col>{statusDictionary[item.status.toLowerCase() || 'created']}</Col>
-                                    <Col><DateDisplay dateString={item.creation_date || ''}/></Col>
                                     <Col><DateDisplay dateString={item.apply_date || ''}/></Col>
-                                    <Col><DateDisplay dateString={item.end_date || ''}/></Col>
                                     <Col>{item.creator}</Col>
                                     <Col>{item.psrn_and_company_name || '--'}</Col>
-
+                                    <Col>{item.offer_count || '--'}</Col>
                                     {user.is_staff && (
                                         <>
                                         <Col>
